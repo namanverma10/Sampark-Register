@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sampark Register</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root{
+    --bg: #F1F0E6;
+    --paper: #FFFFFF;
+    --ink: #1B2E2A;
+    --ink-soft: #56645F;
+    --line: #E2DFD1;
+    --teal: #2F6F62;
+    --teal-dark: #1F4E44;
+    --teal-tint: #E7F0EC;
+    --marigold: #C9820A;
+    --marigold-tint: #FBF0D9;
+    --marigold-line: #E9C579;
+    --rust: #B5533C;
+    --rust-tint: #F7E7E2;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 500px at 10% -10%, rgba(47,111,98,0.07), transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:28px 18px 80px;}
+
+  /* Header */
+  .masthead{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:16px;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:16px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+  .masthead .eyebrow{
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--teal-dark);
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .masthead h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:32px;
+    line-height:1.05;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .masthead .sub{
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin-top:6px;
+    max-width:460px;
+  }
+
+  .header-actions{display:flex; gap:8px; flex-wrap:wrap;}
+  .upload-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--teal);
+    color:#fff;
+    border:none;
+    padding:11px 18px;
+    border-radius:999px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    cursor:pointer;
+    white-space:nowrap;
+    box-shadow:0 2px 0 var(--teal-dark);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .upload-btn.secondary{
+    background:var(--paper);
+    color:var(--teal-dark);
+    border:1px solid var(--line);
+    box-shadow:none;
+  }
+  .upload-btn:hover{transform:translateY(-1px);}
+  .upload-btn:active{transform:translateY(1px); box-shadow:0 1px 0 var(--teal-dark);}
+  .upload-btn svg{width:15px;height:15px;flex:none;}
+  #fileInput{display:none;}
+
+  /* Tabs */
+  .tabbar{
+    display:flex;
+    gap:4px;
+    margin-bottom:18px;
+    border-bottom:1px solid var(--line);
+  }
+  .tabbar button{
+    background:none;
+    border:none;
+    padding:10px 4px;
+    margin-right:22px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-bottom:2.5px solid transparent;
+    position:relative;
+    top:1px;
+  }
+  .tabbar button.active{color:var(--ink); border-bottom-color:var(--marigold);}
+  .tabbar button .pill{
+    display:inline-block;margin-left:6px;
+    background:var(--teal-tint); color:var(--teal-dark);
+    font-size:10.5px; font-weight:700;
+    padding:1px 7px; border-radius:999px;
+  }
+  .tabbar button.active .pill{background:var(--marigold-tint); color:var(--marigold);}
+
+  /* Stats strip - "register stamp" */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .stat-card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 16px;
+    position:relative;
+    overflow:hidden;
+  }
+  .stat-card .num{
+    font-family:'Fraunces',serif;
+    font-size:30px;
+    font-weight:600;
+    line-height:1;
+  }
+  .stat-card .label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.09em;
+    color:var(--ink-soft);
+    font-weight:600;
+    margin-top:6px;
+  }
+  .stat-card.total .num{color:var(--ink);}
+  .stat-card.done{background:var(--marigold-tint); border-color:var(--marigold-line);}
+  .stat-card.done .num{color:var(--marigold);}
+  .stat-card.remain .num{color:var(--teal);}
+
+  .progress-track{
+    height:8px;
+    border-radius:999px;
+    background:var(--line);
+    overflow:hidden;
+    margin-bottom:22px;
+  }
+  .progress-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--marigold),#E0A430);
+    border-radius:999px;
+    transition:width .35s ease;
+  }
+
+  /* Controls */
+  .controls{
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+    align-items:center;
+  }
+  .search-box{
+    flex:1;
+    min-width:180px;
+    position:relative;
+  }
+  .search-box input{
+    width:100%;
+    padding:10px 14px 10px 36px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--paper);
+    font-family:'Inter',sans-serif;
+    font-size:13.5px;
+    color:var(--ink);
+    outline:none;
+  }
+  .search-box input:focus{border-color:var(--teal);}
+  .search-box svg{
+    position:absolute;left:13px;top:50%;transform:translateY(-50%);
+    width:14px;height:14px;color:var(--ink-soft);
+  }
+  .seg{
+    display:flex;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:3px;
+    gap:2px;
+  }
+  .seg button{
+    border:none;
+    background:transparent;
+    padding:7px 13px;
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    border-radius:999px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .seg button.active{background:var(--teal); color:#fff;}
+
+  .util-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    font-size:12px;
+    color:var(--ink-soft);
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .util-row button.linklike{
+    background:none;border:none;color:var(--rust);font-family:'Inter',sans-serif;
+    font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline;padding:0;
+  }
+
+  /* Empty state */
+  .empty{
+    text-align:center;
+    padding:60px 20px;
+    border:1.5px dashed var(--line);
+    border-radius:var(--radius);
+    background:var(--paper);
+  }
+  .empty .icon{
+    width:46px;height:46px;margin:0 auto 14px;color:var(--teal);
+  }
+  .empty h3{
+    font-family:'Fraunces',serif;
+    font-size:19px;
+    margin:0 0 6px;
+  }
+  .empty p{font-size:13.5px; color:var(--ink-soft); margin:0 0 18px;}
+
+  /* Cards list */
+  .list{display:flex; flex-direction:column; gap:8px;}
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:13px 14px;
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    transition:background .18s ease, border-color .18s ease;
+    position:relative;
+  }
+  .card.done{
+    background:var(--marigold-tint);
+    border-color:var(--marigold-line);
+  }
+  .check{
+    flex:none;
+    width:24px;height:24px;
+    border-radius:7px;
+    border:2px solid var(--line);
+    background:#fff;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    margin-top:2px;
+    transition:all .15s ease;
+  }
+  .card.done .check{
+    background:var(--marigold);
+    border-color:var(--marigold);
+  }
+  .check svg{width:14px;height:14px;color:#fff; opacity:0; transform:scale(.6); transition:all .12s ease;}
+  .card.done .check svg{opacity:1; transform:scale(1);}
+
+  .card-body{flex:1; min-width:0;}
+  .card-top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .card-name{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:16px;
+    color:var(--ink);
+  }
+  .card.done .card-name{color:var(--marigold);}
+  .stamp{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.08em;
+    color:var(--marigold);
+    border:1px solid var(--marigold);
+    padding:2px 7px;
+    border-radius:999px;
+    text-transform:uppercase;
+    flex:none;
+    transform:rotate(-3deg);
+  }
+  .tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-top:7px;
+  }
+  .tag{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    background:var(--teal-tint);
+    padding:3px 9px;
+    border-radius:999px;
+    line-height:1.4;
+  }
+  .card.done .tag{background:rgba(255,255,255,.6);}
+  .tag.mobile{
+    color:var(--teal-dark);
+    font-weight:600;
+    background:transparent;
+    border:1px solid var(--line);
+  }
+  .tag.time{
+    color:var(--marigold);
+    font-weight:600;
+    background:transparent;
+    border:1px solid var(--marigold-line);
+  }
+  .remove-btn{
+    flex:none;
+    width:24px;height:24px;
+    border:none;background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    opacity:0;
+    transition:opacity .15s ease;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .card:hover .remove-btn{opacity:1;}
+  .remove-btn:hover{color:var(--rust);}
+  .remove-btn svg{width:15px;height:15px;}
+
+  .toast{
+    position:fixed;
+    bottom:22px;left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--ink);
+    color:#fff;
+    padding:11px 18px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:500;
+    opacity:0;
+    pointer-events:none;
+    transition:all .25s ease;
+    z-index:50;
+    box-shadow:0 8px 24px rgba(0,0,0,.2);
+    text-align:center;
+    max-width:88vw;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .dupe-note{
+    font-size:12px;
+    color:var(--teal-dark);
+    background:var(--teal-tint);
+    border-radius:10px;
+    padding:9px 13px;
+    margin-bottom:14px;
+    display:none;
+  }
+
+  /* Report view */
+  .today-card{
+    background:linear-gradient(135deg, var(--teal), var(--teal-dark));
+    border-radius:16px;
+    padding:20px 22px;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+  }
+  .today-card .big{
+    font-family:'Fraunces',serif;
+    font-size:38px;
+    font-weight:700;
+    line-height:1;
+  }
+  .today-card .label{font-size:12.5px; opacity:.85; margin-top:4px;}
+  .today-card .date-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+    opacity:.75;
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .export-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    background:rgba(255,255,255,.16);
+    border:1px solid rgba(255,255,255,.4);
+    color:#fff;
+    padding:9px 15px;
+    border-radius:999px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .export-btn:hover{background:rgba(255,255,255,.26);}
+  .export-btn svg{width:14px;height:14px;}
+
+  .date-group{margin-bottom:22px;}
+  .date-heading{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .date-heading h4{
+    font-family:'Fraunces',serif;
+    font-size:16px;
+    font-weight:600;
+    margin:0;
+    white-space:nowrap;
+  }
+  .date-heading .rule{flex:1; height:1px; background:var(--line);}
+  .date-heading .count{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    background:var(--teal-tint);
+    padding:2px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+
+  .report-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-left:3px solid var(--marigold);
+    border-radius:10px;
+    padding:10px 14px;
+    margin-bottom:7px;
+  }
+  .report-row .time{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:14px;
+    color:var(--marigold);
+    width:66px;
+    flex:none;
+  }
+  .report-row .rname{font-weight:600; font-size:14px; flex:1; min-width:0;}
+  .report-row .rmeta{font-size:11.5px; color:var(--ink-soft); white-space:nowrap;}
+
+  @media (max-width:520px){
+    .masthead h1{font-size:26px;}
+    .stat-card .num{font-size:24px;}
+    .stats{grid-template-columns:repeat(3,1fr); gap:7px;}
+    .stat-card{padding:11px 10px;}
+    .today-card .big{font-size:30px;}
+    .report-row{flex-wrap:wrap;}
+    .report-row .time{width:auto;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <div class="eyebrow">Sampark Register</div>
+      <h1>Karyakarta Tracker</h1>
+      <div class="sub">Excel ya PDF upload karo — records auto-merge &amp; duplicate-free honge. Sampark kiya to tick kar do, date-time apne aap record ho jayega.</div>
+    </div>
+    <div class="header-actions">
+      <button class="upload-btn" id="uploadTrigger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4l-4 4M12 4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        Upload Karo
+      </button>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.pdf">
+  </div>
+
+  <div class="tabbar" id="tabbar"></div>
+
+  <div id="dupeNote" class="dupe-note"></div>
+
+  <div id="pageContent"></div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+
+  const STORAGE_KEY = 'sampark_register_records';
+  const SEED_DATA = [{"Name": "PAWAN SHARMA", "Dayitva": "SAH SANCHALAK", "Mobile": "7350014526", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Chetan dada/Sharad Mane/Rohit Kulkarni"}, {"Name": "ROHINITAI KUDMETHE", "Dayitva": "NAGAR PARAMUKH", "Mobile": "7841817822", "Vistar": "Savitri Vistar", "Prashikshan": "SKPS", "NVPS": "YES", "Sampark": "Vistar"}, {"Name": "RAHUL BHALEKAR", "Dayitva": "SAHA NAGAR PRAMUKH", "Mobile": "7558476061", "Vistar": "Atal Vistar", "Prashikshan": "PKPS", "NVPS": "YES", "Sampark": "Vistar"}, {"Name": "SHASHIKANT SUTAR", "Dayitva": "SAHA NAGAR PRAMUKH", "Mobile": "8308688955", "Vistar": "Chatrapati Vistar", "Prashikshan": "SKPS", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "SHRINIVAS UNDE", "Dayitva": "VYAVASTHA PRAMUKH", "Mobile": "8149267490", "Vistar": "Chapekar Vistar", "Prashikshan": "SKPS", "NVPS": "YES", "Sampark": "Vistar"}, {"Name": "VARSHATAI PAWAR", "Dayitva": "SAH VYAVASTHA PRAMUKH", "Mobile": "8446118465", "Vistar": "Atal Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "Madhu tai", "Dayitva": "SAH VYAVASTHA PRAMUKH", "Mobile": "9890569602", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Rohini tai/Shrinivas unde"}, {"Name": "AMIT PARADKAR", "Dayitva": "SAH VYAVASTHA PRAMUKH", "Mobile": "9422336058", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "CHAITAN KANADE", "Dayitva": "KARYAPADDHATI PRAMUKH", "Mobile": "8888587265", "Vistar": "Chapekar Vistar", "Prashikshan": "PKPS", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "PRANJALI KADAM", "Dayitva": "SAHA KARYAPADHATI PRAMUKH", "Mobile": "9699720372", "Vistar": "Atal Vistar", "Prashikshan": "SKPS", "NVPS": "", "Sampark": "Vistar"}, {"Name": "TEJAS DEVKATE", "Dayitva": "YUVA PRAMUKH", "Mobile": "9022606152", "Vistar": "Talegaon Dabhade", "Prashikshan": "PKPS", "NVPS": "YES", "Sampark": "Vistar"}, {"Name": "NIKHIL KANSHETTI", "Dayitva": "SAHA YUVA PRAMUKH", "Mobile": "7028127032", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "YLDA", "Sampark": "Om Jagtap"}, {"Name": "ARYA TAI PARADKAR", "Dayitva": "SAH YUVAPRAMUKH", "Mobile": "9637278517", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "YES, YLDA", "Sampark": "Pranjali tai"}, {"Name": "NACHIKETA DESHMUKH", "Dayitva": "CHAPEKAR VISTAR PRAMUKH", "Mobile": "9129069656", "Vistar": "Chapekar Vistar", "Prashikshan": "SKPS", "NVPS": "YES", "Sampark": "Vistar"}, {"Name": "NAMAN VERMA", "Dayitva": "IT PRAMUKH", "Mobile": "7879640344", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "YLDA", "Sampark": "Shashikant Sutar"}, {"Name": "ROHIT KANTLI", "Dayitva": "KARYALAY PRAMUKH", "Mobile": "9561220497", "Vistar": "Chapekar Vistar", "Prashikshan": "PKPS", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "ROHIT KULKARNI", "Dayitva": "SAMPARK PRAMUKH", "Mobile": "8208716975", "Vistar": "Savitri Vistar", "Prashikshan": "PKPS", "NVPS": "YES", "Sampark": "Vistar"}, {"Name": "AMAN RATRE", "Dayitva": "SAH SAMPARK PRAMUKH", "Mobile": "8720000019", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Rohit Kulkarni"}, {"Name": "PRASHANT SAWANT", "Dayitva": "SAH SAMPARK PRAMUKH", "Mobile": "7028903322", "Vistar": "Atal Vistar", "Prashikshan": "SKPS", "NVPS": "NO", "Sampark": "Nachiketa Deshmukh/Rahul Bhalekar"}, {"Name": "ANAGHATAI PARADKAR", "Dayitva": "SAH SAMPARK PRAMUKH", "Mobile": "8149830356", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Asmita tai"}, {"Name": "PAWAN KAKI", "Dayitva": "SAHITYA SEVA PRAMUKH", "Mobile": "9356645379", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "YLDA", "Sampark": "Vistar"}, {"Name": "ARUN PARADKAR", "Dayitva": "SAH SAHITYA SEVA PRAMUKH", "Mobile": "9403276376", "Vistar": "Chapekar Vistar", "Prashikshan": "SKPS", "NVPS": "YES", "Sampark": "Vistar"}, {"Name": "SWATI TAI CHONKAR", "Dayitva": "SAH SAHITYA SEVA PRAMUKH", "Mobile": "9923570548", "Vistar": "Atal Vistar", "Prashikshan": "SKPS", "NVPS": "NO", "Sampark": "Asmita tai"}, {"Name": "NARENDRA KUMAR", "Dayitva": "AMRUT PARIWAR PRAMUKH", "Mobile": "7879544446", "Vistar": "Atal Vistar", "Prashikshan": "", "NVPS": "", "Sampark": "Rahul Bhalekar"}, {"Name": "SHASHIKANT PAWAR", "Dayitva": "SAHA AMRUT PARIWAR PRAMUKH", "Mobile": "8796542065", "Vistar": "Atal Vistar", "Prashikshan": "--------------------", "NVPS": "YES", "Sampark": "Tejas Devkate"}, {"Name": "REKHA TAI TARODE", "Dayitva": "NIDHI PRAMUKH", "Mobile": "9921181491", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "RAKESH CHOUDHARI", "Dayitva": "SAH NIDHI SANKALAN", "Mobile": "8668992967", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Avinash dada"}, {"Name": "PRAMOD DADA CHINCHWADE", "Dayitva": "SAVITRI VISTAR PRAMUKH", "Mobile": "7770033221", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Pundalik dada"}, {"Name": "MADHURA TAI", "Dayitva": "YOG VARG PRMUKH", "Mobile": "9011030332", "Vistar": "Atal Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Varsha tai"}, {"Name": "AMRUTA NIRMAL", "Dayitva": "SAH YOG VARG PRMUKH", "Mobile": "9975051031", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Varsha tai/Rohini tai"}, {"Name": "BHARTI TAI", "Dayitva": "KARYAKARTA", "Mobile": "9975770865", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Varsha tai/Rohini tai"}, {"Name": "AVINASH TRIVEDI", "Dayitva": "Savitri Vistar VISTAR", "Mobile": "9428202135", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Rohit Kulkarni"}, {"Name": "ASMITA TAI KARMARKAR", "Dayitva": "SANSKAR VARG PRAMUKH", "Mobile": "7276376350", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "HEMANGI HINGE", "Dayitva": "KARYAKARTA", "Mobile": "9049301753", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Rohini Tai"}, {"Name": "SHRINIVAS HINGE", "Dayitva": "CHATRAPATI VISTAR PRAMUKH", "Mobile": "9049301753", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Nachiketa Deshmukh"}, {"Name": "", "Dayitva": "UTSAV PRAMUKH", "Mobile": "", "Vistar": "", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": ""}, {"Name": "MUGHADATAI SIRDESHPANDE", "Dayitva": "NAGAR COORDINATE", "Mobile": "9270246901", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "SAMIR RATHORE", "Dayitva": "KARYAKARTA", "Mobile": "7387085007", "Vistar": "Atal Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Rohit kulkarni"}, {"Name": "JAIDEV DADA", "Dayitva": "NAGAR COORDINATE", "Mobile": "9822479177", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "YES", "Sampark": "Vistar"}, {"Name": "ARUNATAI MARATHE", "Dayitva": "NAGAR COORDINATE", "Mobile": "9604683801", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "PUNDALIK MATE", "Dayitva": "NAGAR COORDINATE", "Mobile": "9881042443", "Vistar": "Chatrapati Vistar", "Prashikshan": "SKPS", "NVPS": "YES", "Sampark": "Vistar"}, {"Name": "RAHUL PATIL", "Dayitva": "KARYAKARTA", "Mobile": "8411061119", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "YES", "Sampark": "Pundalik dada"}, {"Name": "YUVRAJ PERDESHI", "Dayitva": "KARYAKARTA", "Mobile": "7709024096", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Shrinivas unde"}, {"Name": "PRITI TAI CHINCHWADE", "Dayitva": "KARYAKARTA", "Mobile": "9405555690", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Rohini tai"}, {"Name": "JAGJEET KULKARNI", "Dayitva": "KARYAKARTA", "Mobile": "9822540496", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "POOJA KULKARNI", "Dayitva": "KARYAKARTA", "Mobile": "9960939138", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Varsha Tai"}, {"Name": "ASHA TAI", "Dayitva": "KARYAKARTA", "Mobile": "9763365739", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "DEVDATTA KUMAWAT", "Dayitva": "KARYAKARTA", "Mobile": "9822571554", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Shashikant Sutar"}, {"Name": "YOGESH JOSHI", "Dayitva": "KARYAKARTA", "Mobile": "7972027477", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Rohit Kulkarni"}, {"Name": "VIKRAMJI MAWINKATTI", "Dayitva": "KARYAKARTA", "Mobile": "8888801539", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "VEDASHRI MAWINKATTI", "Dayitva": "KARYAKARTA", "Mobile": "8553950270", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "VIVEK KULKARNI", "Dayitva": "KARYAKARTA", "Mobile": "7387780899", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Nachiketa Deshmukh"}, {"Name": "PUNIT OZHA", "Dayitva": "KARYAKARTA", "Mobile": "8605677239", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Pundalik dada"}, {"Name": "KUSHAL KULKARNI", "Dayitva": "KARYAKARTA", "Mobile": "8087733508", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "YLDA", "Sampark": "Pundalik dada"}, {"Name": "ASHISH JALGAON", "Dayitva": "KARYAKARTA", "Mobile": "9370243435", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Om Jagtap"}, {"Name": "AMOL FUND", "Dayitva": "KARYAKARTA", "Mobile": "8237074539", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Tejas Devkate"}, {"Name": "NINAD SAMBHAJINAGAR", "Dayitva": "KARYAKARTA", "Mobile": "8956211560", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "YLDA", "Sampark": "Om Jagtap"}, {"Name": "LINA TAI LADHE", "Dayitva": "KARYAKARTA", "Mobile": "9850827204", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Asmita tai Rohini tai"}, {"Name": "KANASE FAMILY", "Dayitva": "KARYAKARTA", "Mobile": "9881074140", "Vistar": "Atal Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Avinash dada/Shrinivas Unde"}, {"Name": "MRUNAL PATHRUDKAR TAI", "Dayitva": "KARYAKARTA", "Mobile": "7820978586", "Vistar": "Talegaon Dabhade", "Prashikshan": "", "NVPS": "", "Sampark": "Tejas Devkate"}, {"Name": "SACHIN BHIDE", "Dayitva": "KARYAKARTA", "Mobile": "9923331120", "Vistar": "Talegaon Dabhade", "Prashikshan": "", "NVPS": "", "Sampark": "Tejas Devkate"}, {"Name": "SAINATH DADA", "Dayitva": "KARYAKARTA", "Mobile": "9346810578", "Vistar": "Talegaon Dabhade", "Prashikshan": "", "NVPS": "", "Sampark": "Tejas Devkate"}, {"Name": "ATHARV PATEKAR", "Dayitva": "KARYAKARTA", "Mobile": "9623433322", "Vistar": "Atal Vistar", "Prashikshan": "--------------------", "NVPS": "YLDA", "Sampark": "Om Jagtap"}, {"Name": "DEEPALI WAGHMARE", "Dayitva": "KARYAKARTA", "Mobile": "9325186086", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "YLDA", "Sampark": "Pranjali tai"}, {"Name": "LAXMIKANT", "Dayitva": "KARYAKARTA", "Mobile": "7666167708", "Vistar": "Atal Vistar", "Prashikshan": "", "NVPS": "", "Sampark": "Shashikant Sutar"}, {"Name": "VIVEK PATTARKINE", "Dayitva": "KARYAKARTA", "Mobile": "9850504760", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Rohit Kulkarni"}, {"Name": "SACHIN KUMBHAR", "Dayitva": "KARYAKARTA", "Mobile": "9822621913", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Tejas Devkate"}, {"Name": "MITHILESH", "Dayitva": "KARYAKARTA", "Mobile": "7666335809", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Rohit Kulkarni"}, {"Name": "ROSHAN INGALE", "Dayitva": "KARYAKARTA", "Mobile": "7020161762", "Vistar": "Atal Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Rahul Bhalekar"}, {"Name": "SHITAL KUMAR", "Dayitva": "KARYAKARTA", "Mobile": "9743366914", "Vistar": "Atal Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Rahul Bhalekar"}, {"Name": "GANESH SUTAR", "Dayitva": "KARYAKARTA", "Mobile": "8390117848", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "BHAGYASHREE TAMBEKAR", "Dayitva": "GRAMASTHAN DEHU", "Mobile": "9921663315", "Vistar": "DEHU GRAM", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "PRABHAKAR PANDE", "Dayitva": "KARYAKARTA", "Mobile": "9922267199", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "NIRMALA NAIK", "Dayitva": "KARYAKARTA", "Mobile": "9011497914", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "MANDAR HARDIKAR", "Dayitva": "KARYAKARTA", "Mobile": "9881717769", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "ROOPA SHAHA", "Dayitva": "KARYAKARTA", "Mobile": "9595009328", "Vistar": "Atal Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "TUSHAR NAYAR", "Dayitva": "KARYAKARTA", "Mobile": "", "Vistar": "", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "POORVA KULKARNI", "Dayitva": "KARYAKARTA", "Mobile": "8087961686", "Vistar": "Chatrapati Vistar", "Prashikshan": "SKPS", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "PRATIKSHA WALUNJ", "Dayitva": "KARYAKARTA", "Mobile": "7378455041", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "ASHWIN BHAI SUMITJI SAMPARK", "Dayitva": "KARYAKARTA", "Mobile": "8806600667", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "SUSHRITA TERWADKAR", "Dayitva": "KARYAKARTA", "Mobile": "9372148177", "Vistar": "Atal Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "SANKET DADA SAMBHAJINAGAR", "Dayitva": "KARYAKARTA", "Mobile": "8007347048", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "KAILAS KATHAVTE", "Dayitva": "KARYAKARTA", "Mobile": "9226466872, 9028531730", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "SHILPA NAGARKAR", "Dayitva": "KARYAKARTA", "Mobile": "9921951588", "Vistar": "Atal Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "HARSHALA DEV", "Dayitva": "KARYAKARTA", "Mobile": "9881439326", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "PRASHANT GORE", "Dayitva": "KARYAKARTA", "Mobile": "9028487098, 8390052954", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "SUPRIYA YELIMELI", "Dayitva": "KARYAKARTA", "Mobile": "9359093724", "Vistar": "Savitri Vistar", "Prashikshan": "", "NVPS": "", "Sampark": "Vistar"}, {"Name": "MOHIT JOSHI", "Dayitva": "KARYAKARTA", "Mobile": "9511766155", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "ABHIJIT BHANDARKAR", "Dayitva": "KARYAKARTA", "Mobile": "8983317442", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "KALPANA CHAVAN", "Dayitva": "KARYAKARTA", "Mobile": "7083894576", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "PRASAD WAGH", "Dayitva": "KARYAKARTA", "Mobile": "8411843000", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "SHAILAJA WAGH", "Dayitva": "KARYAKARTA", "Mobile": "9869031078", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "MEDHA KURUNDWAD", "Dayitva": "KARYAKARTA", "Mobile": "9421703024", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "SHAILENDRA KOLATKAR DADA", "Dayitva": "KARYAKARTA", "Mobile": "9923141855", "Vistar": "Chapekar Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "SUJATA TAI PARAB", "Dayitva": "KARYAKARTA", "Mobile": "8975760969", "Vistar": "Atal Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "SIDHARAM SAKHARE", "Dayitva": "KARYAKARTA", "Mobile": "9834555576", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "RAM KULKARNI", "Dayitva": "KARYAKARTA", "Mobile": "9423015050", "Vistar": "Chatrapati Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "MRUNALI DESHPANDE", "Dayitva": "KARYAKARTA", "Mobile": "8237684429", "Vistar": "Savitri Vistar", "Prashikshan": "--------------------", "NVPS": "NO", "Sampark": "Vistar"}, {"Name": "Surendra Hinge", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Namrata Hinge", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Bhiken Yawalkar", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Sachin Ramdasi", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Shantanukumar Joshi", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Yash", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Adwait", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Rugved", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Awani", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Nupur", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Vedant", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Sidharth", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Anushree", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Aryan Kumavat", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Amol fund sister", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Vaishnavi solapur", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Tejas friend solapur", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Aishwarya", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Omkar Deshpande", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}, {"Name": "Pallavi Kulkarni (Vivek Kulkarni)", "Dayitva": "Sampark Rachana Karyakarta", "Mobile": "", "Vistar": "", "Prashikshan": "", "NVPS": "", "Sampark": ""}]
+;
+
+  let records = [];       // array of {__id, __key, __done, __doneAt, __cols}
+  let filterMode = 'all';
+  let searchTerm = '';
+  let currentTab = 'records'; // 'records' | 'report'
+
+  if(window.pdfjsLib){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  const fileInput = document.getElementById('fileInput');
+  const uploadTrigger = document.getElementById('uploadTrigger');
+  const tabbar = document.getElementById('tabbar');
+  const pageContent = document.getElementById('pageContent');
+  const toastEl = document.getElementById('toast');
+  const dupeNote = document.getElementById('dupeNote');
+
+  uploadTrigger.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', handleFile);
+
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 2600);
+  }
+
+  function normName(s){
+    return String(s||'').trim().toUpperCase().replace(/\s+/g,' ');
+  }
+  function normMobile(s){
+    return String(s||'').replace(/\D/g,'');
+  }
+
+  function findKeyColumn(headers, patterns){
+    for(const h of headers){
+      const low = h.toLowerCase();
+      if(patterns.some(p => low.includes(p))) return h;
+    }
+    return null;
+  }
+
+  function makeDedupeKey(row, headers){
+    const nameCol = findKeyColumn(headers, ['name','naam']);
+    const mobCol = findKeyColumn(headers, ['mob','phone','contact','number']);
+    if(nameCol){
+      const n = normName(row[nameCol]);
+      const m = mobCol ? normMobile(row[mobCol]) : '';
+      if(n) return 'N:'+n+(m ? '|'+m : '');
+    }
+    return 'R:'+headers.map(h=>String(row[h]||'').trim().toLowerCase()).join('|');
+  }
+
+  /* ---------- Excel parsing ---------- */
+
+  function findHeaderRowIndex(aoa){
+    for(let i=0;i<Math.min(aoa.length,12);i++){
+      const row = aoa[i] || [];
+      const nonEmpty = row.filter(c => c!==null && c!==undefined && String(c).trim()!=='');
+      if(nonEmpty.length >= 3){
+        const numericCount = nonEmpty.filter(c => typeof c === 'number').length;
+        if(numericCount / nonEmpty.length < 0.5) return i;
+      }
+    }
+    return 0;
+  }
+
+  function parseWorkbookToRows(wb){
+    let allRows = [];
+    wb.SheetNames.forEach(sheetName => {
+      const ws = wb.Sheets[sheetName];
+      const aoa = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:''});
+      if(!aoa.length) return;
+      const headerIdx = findHeaderRowIndex(aoa);
+      const rawHeaders = (aoa[headerIdx]||[]).map(h => String(h||'').trim());
+      const headers = rawHeaders.map((h,i) => h || ('Col'+(i+1)));
+      for(let r = headerIdx+1; r<aoa.length; r++){
+        const rowArr = aoa[r] || [];
+        const nonEmpty = rowArr.filter(c => c!==null && c!==undefined && String(c).trim()!=='');
+        if(nonEmpty.length === 0) continue;
+        const obj = {};
+        headers.forEach((h,ci) => {
+          if(!h) return;
+          let val = rowArr[ci];
+          if(val===undefined || val===null) val='';
+          obj[h] = String(val).trim();
+        });
+        allRows.push({headers, row: obj});
+      }
+    });
+    return allRows;
+  }
+
+  /* ---------- PDF parsing ---------- */
+
+  const MOBILE_RE = /(?:\+?91[\s-]?)?[6-9]\d{9}(?:\s*,\s*(?:\+?91[\s-]?)?[6-9]\d{9})*/;
+  const SKIP_LINE_RE = /^(sr\.?\s*no\.?|page\s+\d+\s+of\s+\d+|note\s*:|dayitva|vistar|sampark)$/i;
+
+  async function parsePdfToRows(file){
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+    const lines = [];
+
+    for(let p=1; p<=pdf.numPages; p++){
+      const page = await pdf.getPage(p);
+      const content = await page.getTextContent();
+      const items = content.items.map(it => ({
+        text: it.str,
+        x: it.transform[4],
+        y: Math.round(it.transform[5])
+      })).filter(it => it.text && it.text.trim()!=='');
+
+      // cluster into lines by y (allow small tolerance)
+      items.sort((a,b) => b.y - a.y || a.x - b.x);
+      let clusters = [];
+      items.forEach(it => {
+        let cluster = clusters.find(c => Math.abs(c.y - it.y) <= 3);
+        if(!cluster){ cluster = {y: it.y, items: []}; clusters.push(cluster); }
+        cluster.items.push(it);
+      });
+      clusters.forEach(c => {
+        c.items.sort((a,b) => a.x - b.x);
+        const text = c.items.map(i=>i.text).join(' ').replace(/\s+/g,' ').trim();
+        if(text) lines.push(text);
+      });
+    }
+
+    const headers = ['Name','Mobile','Details'];
+    const rows = [];
+    lines.forEach(line => {
+      const clean = line.trim();
+      if(!clean || clean.length < 2) return;
+      if(SKIP_LINE_RE.test(clean)) return;
+      if(/^done$/i.test(clean)) return;
+
+      const mobMatch = clean.match(MOBILE_RE);
+      let name = clean;
+      let mobile = '';
+      let details = '';
+
+      if(mobMatch){
+        mobile = mobMatch[0].replace(/\s+/g,'');
+        name = clean.slice(0, mobMatch.index).trim();
+        details = clean.slice(mobMatch.index + mobMatch[0].length).trim();
+      }
+      // strip a leading serial number like "12" or "12."
+      name = name.replace(/^\d{1,4}[\.\)]?\s+/, '').trim();
+      // strip leading/trailing separators
+      name = name.replace(/^[-–|:\s]+|[-–|:\s]+$/g,'').trim();
+
+      if(!name && !mobile) return;
+      if(!name) name = mobile;
+
+      rows.push({headers, row: {Name: name, Mobile: mobile, Details: details}});
+    });
+
+    return rows;
+  }
+
+  /* ---------- Merge ---------- */
+
+  function mergeIntoRecords(parsedRows){
+    let added = 0, dupes = 0;
+    const existingKeys = new Set(records.map(r=>r.__key));
+    parsedRows.forEach(({headers, row}) => {
+      const key = makeDedupeKey(row, headers);
+      if(existingKeys.has(key)){ dupes++; return; }
+      existingKeys.add(key);
+      records.push({
+        __id: 'r'+Date.now()+Math.random().toString(36).slice(2,8),
+        __key: key,
+        __done: false,
+        __doneAt: null,
+        __cols: row
+      });
+      added++;
+    });
+    return {added, dupes};
+  }
+
+  async function handleFile(e){
+    const file = e.target.files[0];
+    if(!file) return;
+    const isPdf = /\.pdf$/i.test(file.name) || file.type === 'application/pdf';
+    try{
+      let parsedRows;
+      if(isPdf){
+        showToast('PDF padha ja raha hai...');
+        parsedRows = await parsePdfToRows(file);
+      } else {
+        const data = await file.arrayBuffer();
+        const wb = XLSX.read(data, {type:'array'});
+        parsedRows = parseWorkbookToRows(wb);
+      }
+      if(!parsedRows.length){
+        showToast('Is file mein koi record nahi mila.');
+        return;
+      }
+      const {added, dupes} = mergeIntoRecords(parsedRows);
+      await saveRecords();
+      currentTab = 'records';
+      render();
+      dupeNote.style.display = 'block';
+      dupeNote.textContent = `"${file.name}" se ${added} naye record jode gaye.` + (dupes>0 ? ` ${dupes} duplicate skip kiye gaye.` : '');
+      showToast(`${added} record add · ${dupes} duplicate hataye`);
+    }catch(err){
+      console.error(err);
+      showToast('File padhne mein error aayi. Sahi Excel ya PDF file try karo.');
+    }
+    fileInput.value = '';
+  }
+
+  /* ---------- Storage ---------- */
+
+  /* ---------- Persistent Storage ----------
+     Primary: ChatGPT/web storage when available.
+     Fallback: browser localStorage, so checked records survive
+     closing/reopening the HTML page in the same browser.
+  -------------------------------------------------------------- */
+  async function saveRecords(){
+    const data = JSON.stringify(records);
+    let saved = false;
+
+    // Try the existing web storage first.
+    try{
+      if(window.storage && typeof window.storage.set === 'function'){
+        await window.storage.set(STORAGE_KEY, data, false);
+        saved = true;
+      }
+    }catch(err){
+      console.warn('web storage unavailable, using browser localStorage', err);
+    }
+
+    // Always keep a browser-local copy as a fallback.
+    try{
+      localStorage.setItem(STORAGE_KEY, data);
+      saved = true;
+    }catch(err){
+      console.error('localStorage save failed', err);
+    }
+
+    if(!saved){
+      showToast('Data save nahi ho paaya. Browser storage allow karein.');
+    }
+  }
+
+  async function loadRecords(){
+    // Try the existing web storage first.
+    try{
+      if(window.storage && typeof window.storage.get === 'function'){
+        const res = await window.storage.get(STORAGE_KEY, false);
+        if(res && res.value){
+          records = JSON.parse(res.value);
+          records.forEach(r => { if(r.__doneAt === undefined) r.__doneAt = null; });
+          // Keep localStorage in sync too.
+          try{ localStorage.setItem(STORAGE_KEY, res.value); }catch(e){}
+          return true;
+        }
+      }
+    }catch(err){
+      console.warn('web storage load unavailable, trying localStorage', err);
+    }
+
+    // Browser-local persistent storage.
+    try{
+      const data = localStorage.getItem(STORAGE_KEY);
+      if(data){
+        records = JSON.parse(data);
+        records.forEach(r => { if(r.__doneAt === undefined) r.__doneAt = null; });
+        return true;
+      }
+    }catch(err){
+      console.error('localStorage load failed', err);
+    }
+
+    return false;
+  }
+
+  // Extra safety: save the latest state when the page is being closed/refreshed.
+  window.addEventListener('beforeunload', () => {
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }catch(err){}
+  });
+
+  async function toggleDone(id){
+    const rec = records.find(r=>r.__id===id);
+    if(!rec) return;
+    rec.__done = !rec.__done;
+    rec.__doneAt = rec.__done ? new Date().toISOString() : null;
+    await saveRecords();
+    render();
+  }
+
+  async function removeRecord(id){
+    records = records.filter(r=>r.__id!==id);
+    await saveRecords();
+    render();
+  }
+
+  async function clearAll(){
+    if(!confirm('Sabhi records aur sampark status delete ho jayenge. Pakka?')) return;
+    records = [];
+    await saveRecords();
+    dupeNote.style.display = 'none';
+    render();
+  }
+
+  function pickDisplayColumns(rec){
+    const cols = rec.__cols;
+    const headers = Object.keys(cols);
+    const nameCol = findKeyColumn(headers, ['name','naam']);
+    const mobCol = findKeyColumn(headers, ['mob','phone','contact','number']);
+    const others = headers.filter(h => h!==nameCol && h!==mobCol && cols[h]);
+    return {nameCol, mobCol, others};
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function fmtDateKey(iso){
+    const d = new Date(iso);
+    return d.toISOString().slice(0,10); // YYYY-MM-DD, local-ish enough
+  }
+  function fmtDateLabel(dateKey){
+    const d = new Date(dateKey+'T00:00:00');
+    return d.toLocaleDateString('hi-IN', {day:'numeric', month:'long', year:'numeric'});
+  }
+  function fmtTime(iso){
+    const d = new Date(iso);
+    return d.toLocaleTimeString('hi-IN', {hour:'2-digit', minute:'2-digit'});
+  }
+  function todayKey(){
+    return new Date().toISOString().slice(0,10);
+  }
+
+  /* ---------- Tabs ---------- */
+
+  function renderTabbar(){
+    const doneCount = records.filter(r=>r.__done).length;
+    tabbar.innerHTML = `
+      <button data-tab="records" class="${currentTab==='records'?'active':''}">Records</button>
+      <button data-tab="report" class="${currentTab==='report'?'active':''}">Sampark Report <span class="pill">${doneCount}</span></button>
+    `;
+    tabbar.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ currentTab = btn.dataset.tab; render(); });
+    });
+  }
+
+  /* ---------- Records view ---------- */
+
+  function filteredList(){
+    let list = records;
+    if(filterMode==='done') list = list.filter(r=>r.__done);
+    if(filterMode==='pending') list = list.filter(r=>!r.__done);
+    if(searchTerm.trim()){
+      const q = searchTerm.trim().toLowerCase();
+      list = list.filter(r => Object.values(r.__cols).some(v => String(v).toLowerCase().includes(q)));
+    }
+    return list;
+  }
+
+  function cardHtml(rec){
+    const {nameCol, mobCol, others} = pickDisplayColumns(rec);
+    const name = nameCol ? rec.__cols[nameCol] : (Object.values(rec.__cols)[0] || 'Naam nahi mila');
+    const mobile = mobCol ? rec.__cols[mobCol] : '';
+    const tagsHtml = others.slice(0,4).map(h => `<span class="tag">${escapeHtml(rec.__cols[h])}</span>`).join('');
+    const timeTag = (rec.__done && rec.__doneAt) ? `<span class="tag time">${fmtDateLabel(fmtDateKey(rec.__doneAt))}, ${fmtTime(rec.__doneAt)}</span>` : '';
+    return `
+      <div class="card ${rec.__done?'done':''}">
+        <div class="check" data-check-id="${rec.__id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="card-body" data-check-id="${rec.__id}">
+          <div class="card-top">
+            <span class="card-name">${escapeHtml(name)}</span>
+            ${rec.__done ? '<span class="stamp">Sampark ✓</span>' : ''}
+          </div>
+          <div class="tags">
+            ${mobile ? `<span class="tag mobile">${escapeHtml(mobile)}</span>` : ''}
+            ${tagsHtml}
+            ${timeTag}
+          </div>
+        </div>
+        <button class="remove-btn" data-remove-id="${rec.__id}" title="Record hatao">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    `;
+  }
+
+  function renderRecordsView(){
+    const total = records.length;
+    const done = records.filter(r=>r.__done).length;
+    const remain = total - done;
+    const pct = total ? Math.round((done/total)*100) : 0;
+
+    let html = `
+      <div class="stats">
+        <div class="stat-card total"><div class="num">${total}</div><div class="label">Total Log</div></div>
+        <div class="stat-card done"><div class="num">${done}</div><div class="label">Sampark Ho Gaya</div></div>
+        <div class="stat-card remain"><div class="num">${remain}</div><div class="label">Baaki Hai</div></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    `;
+
+    if(total === 0){
+      html += `
+        <div class="empty">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v5"/><path d="M7 14h3M7 17h6"/></svg>
+          <h3>Abhi koi record nahi hai</h3>
+          <p>Apni karyakarta ki Excel ya PDF file upload karo — records automatically ek list mein jud jayenge, duplicates hat jayenge.</p>
+        </div>
+      `;
+      pageContent.innerHTML = html;
+      return;
+    }
+
+    html += `
+      <div class="controls">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="searchInput" placeholder="Naam ya kisi bhi detail se dhundo..." value="${escapeHtml(searchTerm)}">
+        </div>
+        <div class="seg">
+          <button data-mode="all" class="${filterMode==='all'?'active':''}">Sab</button>
+          <button data-mode="done" class="${filterMode==='done'?'active':''}">Ho Gaya</button>
+          <button data-mode="pending" class="${filterMode==='pending'?'active':''}">Baaki</button>
+        </div>
+      </div>
+      <div class="util-row">
+        <span id="visibleCount"></span>
+        <button class="linklike" id="clearAllBtn">Sab records delete karo</button>
+      </div>
+      <div class="list" id="listArea"></div>
+    `;
+
+    pageContent.innerHTML = html;
+
+    const list = filteredList();
+    document.getElementById('visibleCount').textContent = `${list.length} record dikh rahe hain`;
+    const listArea = document.getElementById('listArea');
+    if(list.length === 0){
+      listArea.innerHTML = `<div class="empty"><h3>Kuch nahi mila</h3><p>Search ya filter badal ke dekho.</p></div>`;
+    } else {
+      listArea.innerHTML = list.map(cardHtml).join('');
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e)=>{
+      searchTerm = e.target.value;
+      const start = e.target.selectionStart;
+      renderRecordsView();
+      const el = document.getElementById('searchInput');
+      if(el){ el.focus(); el.selectionStart = el.selectionEnd = start; }
+    });
+    pageContent.querySelectorAll('.seg button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{ filterMode = btn.dataset.mode; renderRecordsView(); });
+    });
+    document.getElementById('clearAllBtn').addEventListener('click', clearAll);
+    pageContent.querySelectorAll('[data-check-id]').forEach(el=>{
+      el.addEventListener('click', ()=> toggleDone(el.dataset.checkId));
+    });
+    pageContent.querySelectorAll('[data-remove-id]').forEach(el=>{
+      el.addEventListener('click', (ev)=>{ ev.stopPropagation(); removeRecord(el.dataset.removeId); });
+    });
+  }
+
+  /* ---------- Report view ---------- */
+
+  function groupedDoneRecords(){
+    const done = records.filter(r => r.__done && r.__doneAt);
+    const groups = {};
+    done.forEach(r => {
+      const key = fmtDateKey(r.__doneAt);
+      if(!groups[key]) groups[key] = [];
+      groups[key].push(r);
+    });
+    const dateKeys = Object.keys(groups).sort((a,b)=> b.localeCompare(a));
+    dateKeys.forEach(k => groups[k].sort((a,b)=> new Date(a.__doneAt) - new Date(b.__doneAt)));
+    return {groups, dateKeys};
+  }
+
+  function renderReportView(){
+    const {groups, dateKeys} = groupedDoneRecords();
+    const tKey = todayKey();
+    const todayCount = (groups[tKey] || []).length;
+    const totalDone = records.filter(r=>r.__done).length;
+
+    let html = `
+      <div class="today-card">
+        <div>
+          <div class="date-label">${fmtDateLabel(tKey)}</div>
+          <div class="big">${todayCount}</div>
+          <div class="label">Aaj itne logo se sampark hua</div>
+        </div>
+        <button class="export-btn" id="exportPdfBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          Sampark Report PDF Nikaalo
+        </button>
+      </div>
+    `;
+
+    if(dateKeys.length === 0){
+      html += `
+        <div class="empty">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg>
+          <h3>Abhi tak koi sampark record nahi</h3>
+          <p>Records tab mein jaakar naam ke aage checkbox tick karo — yahan uska date-time ka record ban jayega.</p>
+        </div>
+      `;
+      pageContent.innerHTML = html;
+      return;
+    }
+
+    dateKeys.forEach(key => {
+      const items = groups[key];
+      html += `
+        <div class="date-group">
+          <div class="date-heading">
+            <h4>${key===tKey ? 'Aaj — ' : ''}${fmtDateLabel(key)}</h4>
+            <div class="rule"></div>
+            <div class="count">${items.length} sampark</div>
+          </div>
+          ${items.map(r => {
+            const {nameCol, mobCol} = pickDisplayColumns(r);
+            const name = nameCol ? r.__cols[nameCol] : (Object.values(r.__cols)[0] || '');
+            const mobile = mobCol ? r.__cols[mobCol] : '';
+            return `
+              <div class="report-row">
+                <div class="time">${fmtTime(r.__doneAt)}</div>
+                <div class="rname">${escapeHtml(name)}</div>
+                <div class="rmeta">${escapeHtml(mobile)}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    });
+
+    pageContent.innerHTML = html;
+    document.getElementById('exportPdfBtn').addEventListener('click', exportReportPdf);
+  }
+
+  function exportReportPdf(){
+    try{
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({unit:'pt', format:'a4'});
+      const {groups, dateKeys} = groupedDoneRecords();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 40;
+
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(16);
+      doc.setTextColor(31,78,68);
+      doc.text('Sampark Report - Karyakarta Tracker', margin, 46);
+      doc.setFontSize(9.5);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(90,100,95);
+      const totalDone = records.filter(r=>r.__done).length;
+      doc.text(`Total sampark: ${totalDone}  |  Banaya gaya: ${new Date().toLocaleString('hi-IN')}`, margin, 62);
+
+      let cursorY = 82;
+
+      if(dateKeys.length === 0){
+        doc.setTextColor(20,20,20);
+        doc.setFontSize(11);
+        doc.text('Abhi tak koi sampark record nahi hai.', margin, cursorY);
+      }
+
+      dateKeys.forEach((key, idx) => {
+        const items = groups[key];
+        if(cursorY > 750){ doc.addPage(); cursorY = 50; }
+
+        doc.setFont('helvetica','bold');
+        doc.setFontSize(11.5);
+        doc.setTextColor(31,78,68);
+        doc.text(`${fmtDateLabel(key)}  (${items.length} sampark)`, margin, cursorY);
+        cursorY += 8;
+
+        const body = items.map((r,i) => {
+          const {nameCol, mobCol} = pickDisplayColumns(r);
+          const name = nameCol ? r.__cols[nameCol] : (Object.values(r.__cols)[0] || '');
+          const mobile = mobCol ? r.__cols[mobCol] : '';
+          return [String(i+1), fmtTime(r.__doneAt), name || '', mobile || ''];
+        });
+
+        doc.autoTable({
+          startY: cursorY + 4,
+          head: [['Sr.', 'Samay (Time)', 'Naam', 'Mobile No.']],
+          body: body,
+          margin: {left: margin, right: margin},
+          styles: {font:'helvetica', fontSize:9.5, cellPadding:5, textColor:[27,46,42]},
+          headStyles: {fillColor:[47,111,98], textColor:255, fontStyle:'bold'},
+          alternateRowStyles: {fillColor:[247,246,239]},
+          columnStyles: {0:{cellWidth:30}, 1:{cellWidth:80}},
+        });
+        cursorY = doc.lastAutoTable.finalY + 22;
+      });
+
+      const dateStamp = new Date().toISOString().slice(0,10);
+      doc.save(`Sampark_Report_${dateStamp}.pdf`);
+      showToast('Sampark report PDF download ho gayi');
+    }catch(err){
+      console.error(err);
+      showToast('PDF banane mein error aayi.');
+    }
+  }
+
+  /* ---------- Root render ---------- */
+
+  function render(){
+    renderTabbar();
+    if(currentTab === 'report') renderReportView();
+    else renderRecordsView();
+  }
+
+  async function init(){
+    const loaded = await loadRecords();
+    if(!loaded && SEED_DATA && SEED_DATA.length){
+      const seedRows = SEED_DATA.map(row => ({headers: Object.keys(row), row}));
+      mergeIntoRecords(seedRows);
+      await saveRecords();
+    }
+    render();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
